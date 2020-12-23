@@ -1,0 +1,43 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: alpine
+        environment:
+          LANG: en_us.UTF-8
+          PIPENV_VENV_IN_PROJECT: true
+          PIPENV_DEV: true
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Required Tools
+          command: |
+            sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
+            echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
+            apk add --no-cache bash py3-pip shellcheck shfmt
+            pip install pipenv
+
+      - run:
+          name: Set Up Virtualenv
+          command: pipenv install
+
+      - run:
+          name: Format
+          command: ./scripts/format.sh check
+
+      - run:
+          name: Lint
+          command: ./scripts/lint.sh
+
+      - run:
+          name: Test
+          command: ./scripts/test.sh
+
+      - store_test_results:
+          path: test_results
+
+      - store_artifacts:
+          path: test_results
