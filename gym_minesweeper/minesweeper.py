@@ -4,6 +4,7 @@ from io import StringIO
 import gym
 from gym import spaces
 import numpy as np
+from gym.utils import seeding
 
 DEFAULT_BOARD_SIZE = (16, 30)
 DEFAULT_NUM_MINES = 99
@@ -21,7 +22,7 @@ class MinesweeperEnv(gym.Env):
         assert np.prod(board_size) >= num_mines
         assert len(board_size) == 2
         self.board_size, self.num_mines = board_size, num_mines
-        self.hist, self.board, self._board = None, None, None
+        self.hist, self.board, self._board, self._rng = None, None, None, None
 
         self.observation_space = spaces.Box(SPACE_MINE, SPACE_MAX + 1, board_size, np.int)
         self.action_space = spaces.Discrete(np.prod(board_size))
@@ -46,7 +47,7 @@ class MinesweeperEnv(gym.Env):
 
         target_x, target_y = tuple(action)
         assert self._is_valid_space(
-            target_x, target_y) and self._board[target_x, target_y] < 0, "Invalid action: {}".format(action)
+            target_x, target_y) and self.board[target_x, target_y] == SPACE_UNKNOWN, "Invalid action: {}".format(action)
 
         # If already cleared, admonish user
         if self.board[target_x, target_y] >= 0:
@@ -60,12 +61,14 @@ class MinesweeperEnv(gym.Env):
             while mines_placed < self.num_mines:
                 mine_indices = list(
                     zip(*
-                        [np.random.randint(0, dim_size, self.num_mines - mines_placed)
+                        [self._rng.randint(0, dim_size, self.num_mines - mines_placed)
                          for dim_size in self.board_size]))
                 for i in mine_indices:
-                    if self._board[i] == SPACE_UNKNOWN and i != action:
-                        self._board[i] = SPACE_MINE
-                        mines_placed += 1
+                    if self._board[i] == SPACE_UNKNOWN:
+                        # prohibit mines adjacent or equal to target on first step
+                        if i[0] > target_x + 1 or i[0] < target_x - 1 or i[1] > target_y + 1 or i[1] < target_y - 1:
+                            self._board[i] = SPACE_MINE
+                            mines_placed += 1
 
             # Calculate nearby mines in private board
             for x in range(self.board_size[0]):
@@ -80,9 +83,12 @@ class MinesweeperEnv(gym.Env):
         if status is None:
             return self.board, 5, False, dict()
         elif status:
-            return self.board, 1000, True, {"master": self._board}
+            # if won, no need to reveal mines
+            return self.board, 1000, True, dict()
         else:
-            return self.board, -100, True, {"master": self._board}
+            # if lost, reveal mines
+            self.board = self._board
+            return self.board, -100, True, dict()
 
     def reset(self):
         """Resets the environment to an initial state and returns an initial
@@ -154,6 +160,25 @@ class MinesweeperEnv(gym.Env):
             outfile.write('\n')
         return outfile
 
+    def seed(self, seed=None):
+        """Sets the seed for this env's random number generator(s).
+
+        Note:
+            Some environments use multiple pseudorandom number generators.
+            We want to capture all such seeds used in order to ensure that
+            there aren't accidental correlations between multiple generators.
+
+        Returns:
+            list<bigint>: Returns the list of seeds used in this env's random
+              number generators. The first value in the list should be the
+              "main" seed, or the value which a reproducer should pass to
+              'seed'. Often, the main seed equals the provided 'seed', but
+              this won't be true if seed=None, for example.
+        """
+
+        self._rng, seed = seeding.np_random(seed)
+        return [seed]
+
     def _is_valid_space(self, x, y):
         return 0 <= x < self.board_size[0] and 0 <= y < self.board_size[1]
 
@@ -161,7 +186,7 @@ class MinesweeperEnv(gym.Env):
         num_mines = 0
         for i in range(x - 1, x + 2):
             for j in range(y - 1, y + 2):
-                if x != i and y != j and self._is_valid_space(i, j) and self._board[i, j] == SPACE_MINE:
+                if (x != i or y != j) and self._is_valid_space(i, j) and self._board[i, j] == SPACE_MINE:
                     num_mines += 1
         return num_mines
 
@@ -182,6 +207,7 @@ class MinesweeperEnv(gym.Env):
         Returns:
             status (bool): True if game won, False if game lost, None if game in progress
         """
+
         if np.count_nonzero(self.board == SPACE_MINE):
             return False
-        return True if np.count_nonzero(self.board == SPACE_UNKNOWN) == 0 else None
+        return True if np.count_nonzero(self.board == SPACE_UNKNOWN) == self.num_mines else None
