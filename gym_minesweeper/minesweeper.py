@@ -44,14 +44,36 @@ class MinesweeperEnv(gym.Env):
             info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         """
 
-        x, y = tuple(action)
-        assert self._is_valid_space(x, y) and self._board[x, y] < 0, "Invalid action: {}".format(action)
+        target_x, target_y = tuple(action)
+        assert self._is_valid_space(
+            target_x, target_y) and self._board[target_x, target_y] < 0, "Invalid action: {}".format(action)
 
         # If already cleared, admonish user
-        if self.board[x, y] >= 0:
+        if self.board[target_x, target_y] >= 0:
             return self.board, -1, False, dict()
 
-        self._clear_space(x, y)
+        # If first step, populate board
+        # We do this here so that the first move never triggers a mine to explode
+        if len(self.hist) == 0:
+            # Place mines in private board
+            mines_placed = 0
+            while mines_placed < self.num_mines:
+                mine_indices = list(
+                    zip(*
+                        [np.random.randint(0, dim_size, self.num_mines - mines_placed)
+                         for dim_size in self.board_size]))
+                for i in mine_indices:
+                    if self._board[i] == SPACE_UNKNOWN and i != action:
+                        self._board[i] = SPACE_MINE
+                        mines_placed += 1
+
+            # Calculate nearby mines in private board
+            for x in range(self.board_size[0]):
+                for y in range(self.board_size[1]):
+                    if self._board[x, y] == SPACE_UNKNOWN:
+                        self._board[x, y] = self._num_nearby_mines(x, y)
+
+        self._clear_space(target_x, target_y)
 
         status = self.get_status()
 
@@ -76,31 +98,10 @@ class MinesweeperEnv(gym.Env):
             observation (object): the initial observation.
         """
 
-        # Private board -- contains all mine information
-        self._board = np.full(self.board_size, SPACE_UNKNOWN, np.int)
-        # Public board
-        self.board = np.array(self._board)
-
-        # Place mines in private board
-        mines_placed = 0
-        while mines_placed < self.num_mines:
-            mine_indices = list(
-                zip(*[np.random.randint(0, dim_size, self.num_mines - mines_placed) for dim_size in self.board_size]))
-            for i in range(self.num_mines):
-                if self._board[mine_indices] == SPACE_UNKNOWN:
-                    self._board[mine_indices] = SPACE_MINE
-                    mines_placed += 1
-
-        # Calculate nearby mines in private board
-        for x in range(self.board_size[0]):
-            for y in range(self.board_size[1]):
-                if self._board[x] == SPACE_UNKNOWN:
-                    self._board[x] = self._num_nearby_mines(x, y)
-
         self.hist = []
-
-        self.hist, self.board, self._board = None, None, None
-        return np.full(self.board_size, SPACE_UNKNOWN, np.int)
+        self._board = np.full(self.board_size, SPACE_UNKNOWN, np.int)
+        self.board = np.array(self._board)
+        return self.board
 
     def render(self, mode='human'):
         """Renders the environment.
@@ -164,15 +165,16 @@ class MinesweeperEnv(gym.Env):
                     num_mines += 1
         return num_mines
 
-    def _clear_space(self, x, y):
-        if self._is_valid_space(x, y):
+    def _clear_space(self, x, y, update_hist=True):
+        if self._is_valid_space(x, y) and self.board[x, y] == SPACE_UNKNOWN:
             self.board[x, y] = self._board[x, y]
-            self.hist.append((x, y))
+            if update_hist:
+                self.hist.append((x, y))
             if self.board[x, y] == 0:
                 for i in range(x - 1, x + 2):
                     for j in range(y - 1, y + 2):
-                        if x != i and y != j and self._is_valid_space(i, j):
-                            self._clear_space(i, j)
+                        if (x != i or y != j) and self._is_valid_space(i, j):
+                            self._clear_space(i, j, update_hist=False)
 
     def get_status(self):
         """Gets the status of the game.
@@ -182,4 +184,4 @@ class MinesweeperEnv(gym.Env):
         """
         if np.count_nonzero(self.board == SPACE_MINE):
             return False
-        return True if np.count(self.board == SPACE_UNKNOWN) == 0 else None
+        return True if np.count_nonzero(self.board == SPACE_UNKNOWN) == 0 else None
