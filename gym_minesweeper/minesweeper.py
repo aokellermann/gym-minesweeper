@@ -51,12 +51,7 @@ class MinesweeperEnv(gym.Env):
         """
 
         target_x, target_y = tuple(action)
-        assert self._is_valid_space(
-            target_x, target_y) and self.board[target_x, target_y] == SPACE_UNKNOWN, "Invalid action: {}".format(action)
-
-        # If already cleared, admonish user
-        if self.board[target_x, target_y] >= 0:
-            return self.board, -1, False, dict()
+        assert self._is_clearable_space(target_x, target_y), "Invalid action: {}".format(action)
 
         # If first step, populate board
         # We do this here so that the first move never triggers a mine to explode
@@ -186,6 +181,9 @@ class MinesweeperEnv(gym.Env):
     def _is_valid_space(self, target_x, target_y):
         return 0 <= target_x < self.board_size[0] and 0 <= target_y < self.board_size[1]
 
+    def _is_clearable_space(self, target_x, target_y):
+        return self._is_valid_space(target_x, target_y) and self.board[target_x, target_y] == SPACE_UNKNOWN
+
     def _num_nearby_mines(self, target_x, target_y):
         num_mines = 0
         for i in range(target_x - 1, target_x + 2):
@@ -194,16 +192,26 @@ class MinesweeperEnv(gym.Env):
                     num_mines += 1
         return num_mines
 
-    def _clear_space(self, target_x, target_y, update_hist=True):
-        if self._is_valid_space(target_x, target_y) and self.board[target_x, target_y] == SPACE_UNKNOWN:
-            self.board[target_x, target_y] = self._board[target_x, target_y]
+    def _clear_space(self, target_x, target_y):
+        spaces_to_clear = {(target_x, target_y)}
+        spaces_cleared = set()
+
+        update_hist = True
+        while spaces_to_clear:
+            current_space = next(iter(spaces_to_clear))
+            self.board[current_space[0], current_space[1]] = self._board[current_space[0], current_space[1]]
             if update_hist:
-                self.hist.append((target_x, target_y))
-            if self.board[target_x, target_y] == 0:
-                for i in range(target_x - 1, target_x + 2):
-                    for j in range(target_y - 1, target_y + 2):
-                        if (target_x != i or target_y != j) and self._is_valid_space(i, j):
-                            self._clear_space(i, j, update_hist=False)
+                self.hist.append(current_space)
+                update_hist = False
+
+            spaces_to_clear.remove(current_space)
+            spaces_cleared.add(current_space)
+
+            if self.board[current_space[0], current_space[1]] == 0:
+                for i in range(current_space[0] - 1, current_space[0] + 2):
+                    for j in range(current_space[1] - 1, current_space[1] + 2):
+                        if self._is_valid_space(i, j) and (i, j) not in spaces_cleared:
+                            spaces_to_clear.add((i, j))
 
     def get_status(self):
         """Gets the status of the game.

@@ -8,7 +8,7 @@ from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN
 def test_no_mines_init():
     """Asserts that initializing with no mines works properly"""
 
-    size = (342, 665)
+    size = (30, 50)
     ms_game = MinesweeperEnv(size, 0)
     assert size == ms_game.board_size
     assert ms_game.num_mines == 0
@@ -19,9 +19,9 @@ def test_no_mines_init():
 def test_no_mines_step():
     """Asserts that taking one step with no mines wins"""
 
-    size = (342, 665)
+    size = (30, 50)
     ms_game = MinesweeperEnv(size, 0)
-    action = (131, 478)
+    action = (21, 5)
     board, reward, done, info = ms_game.step(action)
 
     expected_board = [[0] * size[1]] * size[0]
