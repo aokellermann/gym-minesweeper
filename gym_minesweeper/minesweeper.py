@@ -15,6 +15,10 @@ SPACE_MINE = -2
 SPACE_UNKNOWN = -1
 SPACE_MAX = 8
 
+REWARD_WIN = 1000
+REWARD_LOSE = -100
+REWARD_CLEAR = 5
+
 
 # Based on https://github.com/genyrosk/gym-chess/blob/master/gym_chess/envs/chess.py
 # pylint: disable=R0902

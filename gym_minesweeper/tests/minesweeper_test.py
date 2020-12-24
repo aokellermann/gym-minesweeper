@@ -2,7 +2,7 @@
 
 import numpy.testing as npt
 
-from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN
+from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
 
 
 def test_no_mines_init():
@@ -29,7 +29,7 @@ def test_no_mines_step():
     npt.assert_array_equal(ms_game.hist, [action])
 
     npt.assert_array_equal(board, expected_board)
-    assert reward == 1000
+    assert reward == REWARD_WIN
     assert done
     assert info == dict()
 
@@ -73,7 +73,30 @@ def test_win():
         [[0, 1, -1, 2, 1], [0, 1, 2, -1, 1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
     ]
 
-    expected_rewards = [5] * (len(expected_boards) - 1) + [1000]
+    expected_rewards = [REWARD_CLEAR] * (len(expected_boards) - 1) + [REWARD_WIN]
+    expected_dones = [False] * (len(expected_boards) - 1) + [True]
+
+    assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
+
+
+def test_lose():
+    """Asserts that a losing playthrough works."""
+
+    size = (4, 5)
+    ms_game = MinesweeperEnv(size, 3)
+    ms_game.seed(42069)
+
+    actions = [(0, 0), (3, 3), (0, 3), (1, 2), (0, 4), (0, 2)]
+    expected_boards = [
+        [[0, 1, -1, -1, -1], [0, 1, -1, -1, -1], [1, 1, -1, -1, -1], [-1, -1, -1, -1, -1]],
+        [[0, 1, -1, -1, -1], [0, 1, -1, -1, -1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
+        [[0, 1, -1, 2, -1], [0, 1, -1, -1, -1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
+        [[0, 1, -1, 2, -1], [0, 1, 2, -1, -1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
+        [[0, 1, -1, 2, 1], [0, 1, 2, -1, -1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
+        [[0, 1, -2, 2, 1], [0, 1, 2, -2, 1], [1, 1, 1, 1, 1], [-2, 1, 0, 0, 0]],
+    ]
+
+    expected_rewards = [REWARD_CLEAR] * (len(expected_boards) - 1) + [REWARD_LOSE]
     expected_dones = [False] * (len(expected_boards) - 1) + [True]
 
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
