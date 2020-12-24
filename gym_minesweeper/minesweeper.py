@@ -1,9 +1,11 @@
+"""OpenAI gym environment for minesweeper."""
+
 import sys
 from io import StringIO
 
 import gym
-from gym import spaces
 import numpy as np
+from gym import spaces
 from gym.utils import seeding
 
 DEFAULT_BOARD_SIZE = (16, 30)
@@ -15,7 +17,10 @@ SPACE_MAX = 8
 
 
 # Based on https://github.com/genyrosk/gym-chess/blob/master/gym_chess/envs/chess.py
+# pylint: disable=R0902
 class MinesweeperEnv(gym.Env):
+    """Minesweeper gym environment."""
+
     metadata = {"render.modes": ["ansi", "human"]}
 
     def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
@@ -71,10 +76,10 @@ class MinesweeperEnv(gym.Env):
                             mines_placed += 1
 
             # Calculate nearby mines in private board
-            for x in range(self.board_size[0]):
-                for y in range(self.board_size[1]):
-                    if self._board[x, y] == SPACE_UNKNOWN:
-                        self._board[x, y] = self._num_nearby_mines(x, y)
+            for calc_x in range(self.board_size[0]):
+                for calc_y in range(self.board_size[1]):
+                    if self._board[calc_x, calc_y] == SPACE_UNKNOWN:
+                        self._board[calc_x, calc_y] = self._num_nearby_mines(calc_x, calc_y)
 
         self._clear_space(target_x, target_y)
 
@@ -82,13 +87,12 @@ class MinesweeperEnv(gym.Env):
 
         if status is None:
             return self.board, 5, False, dict()
-        elif status:
+        if status:
             # if won, no need to reveal mines
             return self.board, 1000, True, dict()
-        else:
-            # if lost, reveal mines
-            self.board = self._board
-            return self.board, -100, True, dict()
+        # if lost, reveal mines
+        self.board = self._board
+        return self.board, -100, True, dict()
 
     def reset(self):
         """Resets the environment to an initial state and returns an initial
@@ -148,14 +152,14 @@ class MinesweeperEnv(gym.Env):
         """
 
         outfile = StringIO() if mode == 'ansi' else sys.stdout
-        for d1 in self.board:
-            for d2 in d1:
-                if d2 == SPACE_MINE:
+        for dim_1 in self.board:
+            for dim_2 in dim_1:
+                if dim_2 == SPACE_MINE:
                     outfile.write('X')
-                elif d2 == SPACE_UNKNOWN:
+                elif dim_2 == SPACE_UNKNOWN:
                     outfile.write(' ')
                 else:
-                    outfile.write(d2)
+                    outfile.write(dim_2)
                 outfile.write(' ')
             outfile.write('\n')
         return outfile
@@ -179,26 +183,26 @@ class MinesweeperEnv(gym.Env):
         self._rng, seed = seeding.np_random(seed)
         return [seed]
 
-    def _is_valid_space(self, x, y):
-        return 0 <= x < self.board_size[0] and 0 <= y < self.board_size[1]
+    def _is_valid_space(self, target_x, target_y):
+        return 0 <= target_x < self.board_size[0] and 0 <= target_y < self.board_size[1]
 
-    def _num_nearby_mines(self, x, y):
+    def _num_nearby_mines(self, target_x, target_y):
         num_mines = 0
-        for i in range(x - 1, x + 2):
-            for j in range(y - 1, y + 2):
-                if (x != i or y != j) and self._is_valid_space(i, j) and self._board[i, j] == SPACE_MINE:
+        for i in range(target_x - 1, target_x + 2):
+            for j in range(target_y - 1, target_y + 2):
+                if (target_x != i or target_y != j) and self._is_valid_space(i, j) and self._board[i, j] == SPACE_MINE:
                     num_mines += 1
         return num_mines
 
-    def _clear_space(self, x, y, update_hist=True):
-        if self._is_valid_space(x, y) and self.board[x, y] == SPACE_UNKNOWN:
-            self.board[x, y] = self._board[x, y]
+    def _clear_space(self, target_x, target_y, update_hist=True):
+        if self._is_valid_space(target_x, target_y) and self.board[target_x, target_y] == SPACE_UNKNOWN:
+            self.board[target_x, target_y] = self._board[target_x, target_y]
             if update_hist:
-                self.hist.append((x, y))
-            if self.board[x, y] == 0:
-                for i in range(x - 1, x + 2):
-                    for j in range(y - 1, y + 2):
-                        if (x != i or y != j) and self._is_valid_space(i, j):
+                self.hist.append((target_x, target_y))
+            if self.board[target_x, target_y] == 0:
+                for i in range(target_x - 1, target_x + 2):
+                    for j in range(target_y - 1, target_y + 2):
+                        if (target_x != i or target_y != j) and self._is_valid_space(i, j):
                             self._clear_space(i, j, update_hist=False)
 
     def get_status(self):
