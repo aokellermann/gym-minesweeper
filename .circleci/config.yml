@@ -17,7 +17,10 @@ jobs:
           command: |
             sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
             echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
-            apk add --no-cache bash py3-pip shellcheck shfmt
+            apk add --no-cache bash \
+                               py3-pip \
+                               shellcheck shfmt \
+                               gcc gfortran python3-dev build-base wget freetype-dev libpng-dev openblas-dev # for numpy
             pip install pipenv
 
       - run:
