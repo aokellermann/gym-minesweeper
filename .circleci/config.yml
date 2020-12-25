@@ -10,6 +10,10 @@ jobs:
 
       - run:
           name: Install Required Tools
+
+          # 1. Python deps
+          # 2. python-pillow does not provide wheel, so must be built with these deps
+          # 3. Formatting/linting
           command: |
             pacman -Sy --noconfirm \
               python python-pip python-virtualenv \
