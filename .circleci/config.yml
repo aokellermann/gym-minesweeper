@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: alpine:3.12.3
+      - image: alpine
 
     steps:
       - checkout
@@ -13,15 +13,20 @@ jobs:
           command: |
             sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
             echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
-            apk add --no-cache bash py3-pip py3-virtualenv shellcheck shfmt
+            apk add --no-cache \
+              bash \
+              py3-pip py3-virtualenv \
+              shellcheck shfmt \
+              gcc python3-dev jpeg-dev zlib-dev
 
       - run:
           name: Set Up Virtualenv
           command: |
-            python3 -m venv venv
+            python -m venv venv
             echo "source venv/bin/activate" >> $BASH_ENV
             source venv/bin/activate
-            pip3 install -e .[dev]
+            pip install --upgrade pip wheel
+            pip install -e .[dev]
 
       - run:
           name: Format
