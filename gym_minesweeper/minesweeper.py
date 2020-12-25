@@ -151,16 +151,18 @@ class MinesweeperEnv(gym.Env):
         """
 
         outfile = StringIO() if mode == 'ansi' else sys.stdout
-        for dim_1 in self.board:
-            for dim_2 in dim_1:
+        for i, dim_1 in enumerate(self.board):
+            for j, dim_2 in enumerate(dim_1):
                 if dim_2 == SPACE_MINE:
                     outfile.write('X')
                 elif dim_2 == SPACE_UNKNOWN:
-                    outfile.write(' ')
+                    outfile.write('-')
                 else:
-                    outfile.write(dim_2)
-                outfile.write(' ')
-            outfile.write('\n')
+                    outfile.write(str(dim_2))
+                if j != self.board_size[1] - 1:
+                    outfile.write(' ')
+            if i != self.board_size[0] - 1:
+                outfile.write('\n')
         return outfile
 
     def seed(self, seed=None):

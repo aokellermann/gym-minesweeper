@@ -1,4 +1,5 @@
-"""Dummy."""
+"""Tests for minesweeper env implementation."""
+from unittest.mock import patch
 
 import numpy.testing as npt
 
@@ -66,7 +67,6 @@ def assert_game(ms_game, actions, expected_boards, expected_rewards, expected_do
         assert reward == expected_rewards[i], err_msg(i)
         assert done == expected_dones[i], err_msg(i)
         assert info == dict(), err_msg(i)
-        return ms_game
 
 
 def test_win(ms_game=create_game()):
@@ -127,3 +127,31 @@ def test_reset_and_reseed():
 
     expected_board = [[SPACE_UNKNOWN] * size[1]] * size[0]
     npt.assert_array_equal(ms_game.board, expected_board)
+
+
+def test_render():
+    """Tests game rendering"""
+
+    # get losing board
+    ms_game = create_game()
+    test_lose(ms_game)
+
+    class WriteSideEffect:
+        out = ""
+
+        def write(self, s):
+            self.out += str(s)
+
+    expected_board = "0 1 X 2 1\n" \
+                     "0 1 2 X 1\n" \
+                     "1 1 1 1 1\n" \
+                     "X 1 0 0 0"
+
+    human_se = WriteSideEffect()
+    with patch("sys.stdout.write", side_effect=human_se.write):
+        ms_game.render('human')
+        assert human_se.out == expected_board
+
+    string_io = ms_game.render('ansi')
+    string_io.seek(0)
+    assert string_io.read() == expected_board
