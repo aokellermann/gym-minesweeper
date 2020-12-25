@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: alpine
+      - image: archlinux:base-devel
 
     steps:
       - checkout
@@ -11,22 +11,19 @@ jobs:
       - run:
           name: Install Required Tools
           command: |
-            sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
-            echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
-            apk add --no-cache \
-              bash \
-              py3-pip py3-virtualenv \
-              shellcheck shfmt \
-              gcc python3-dev jpeg-dev zlib-dev
+            pacman -Sy --noconfirm \
+              python python-pip python-virtualenv \
+              lcms2 libtiff openjpeg2 libimagequant libxcb \
+              shellcheck shfmt
 
       - run:
           name: Set Up Virtualenv
           command: |
-            python3 -m venv venv
+            python -m venv venv
             echo "source venv/bin/activate" >> $BASH_ENV
             source venv/bin/activate
-            pip3 install --upgrade pip wheel
-            pip3 install -e .[dev]
+            pip install --upgrade pip wheel
+            pip install -e .[dev]
 
       - run:
           name: Format
