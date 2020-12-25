@@ -2,6 +2,7 @@
 from unittest.mock import patch
 
 import numpy.testing as npt
+import pytest
 
 from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
 
@@ -155,3 +156,6 @@ def test_render():
     string_io = ms_game.render('ansi')
     string_io.seek(0)
     assert string_io.read() == expected_board
+
+    pytest.raises(NotImplementedError, ms_game.render, 'rgb_array')
+    pytest.raises(NotImplementedError, ms_game.render, 'other')

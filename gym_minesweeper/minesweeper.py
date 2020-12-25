@@ -25,6 +25,7 @@ REWARD_CLEAR = 5
 class MinesweeperEnv(gym.Env):
     """Minesweeper gym environment."""
 
+    # TODO: rgb_array render mode
     metadata = {"render.modes": ["ansi", "human"]}
 
     def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
@@ -48,10 +49,10 @@ class MinesweeperEnv(gym.Env):
             action (np.array): [x, y] coordinate pair of space to clear
 
         Returns:
-            observation (object): agent's observation of the current environment
+            observation (np.array[np.array]): current board state
             reward (float) : amount of reward returned after previous action
             done (bool): whether the episode has ended, in which case further step() calls will return undefined results
-            info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
+            info (dict): currently contains nothing
         """
 
         target_x, target_y = tuple(action)
@@ -97,14 +98,14 @@ class MinesweeperEnv(gym.Env):
         """Resets the environment to an initial state and returns an initial
         observation.
 
-        Note that this function should not reset the environment's random
-        number generator(s); random variables in the environment's state should
-        be sampled independently between multiple calls to `reset()`. In other
-        words, each call of `reset()` should yield an environment suitable for
+        Note that this function does not reset the environment's random
+        number generator(s); random variables in the environment's state are
+        sampled independently between multiple calls to `reset()`. In other
+        words, each call of `reset()` yields an environment suitable for
         a new episode, independent of previous episodes.
 
         Returns:
-            observation (object): the initial observation.
+            observation (np.array[np.array]): current board state (all unknown)
         """
 
         self.hist = []
@@ -115,42 +116,22 @@ class MinesweeperEnv(gym.Env):
     def render(self, mode='human'):
         """Renders the environment.
 
-        The set of supported modes varies per environment. (And some
-        environments do not support rendering at all.) By convention,
-        if mode is:
+        If mode is:
 
         - human: render to the current display or terminal and
           return nothing. Usually for human consumption.
-        - rgb_array: Return an numpy.ndarray with shape (x, y, 3),
-          representing RGB values for an x-by-y pixel image, suitable
-          for turning into a video.
-        - ansi: Return a string (str) or StringIO.StringIO containing a
-          terminal-style text representation. The text can include newlines
+        - ansi: Return a StringIO.StringIO containing a
+          terminal-style text representation. The text may include newlines
           and ANSI escape sequences (e.g. for colors).
-
-        Note:
-            Make sure that your class's metadata 'render.modes' key includes
-              the list of supported modes. It's recommended to call super()
-              in implementations to use the functionality of this method.
 
         Args:
             mode (str): the mode to render with
 
-        Example:
-
-        class MyEnv(Env):
-            metadata = {'render.modes': ['human', 'rgb_array']}
-
-            def render(self, mode='human'):
-                if mode == 'rgb_array':
-                    return np.array(...) # return RGB frame suitable for video
-                elif mode == 'human':
-                    ... # pop up a window and render
-                else:
-                    super(MyEnv, self).render(mode=mode) # just raise an exception
+        Returns:
+            outfile (StringIO or None): StringIO stream if mode is ansi, otherwise None
         """
 
-        outfile = StringIO() if mode == 'ansi' else sys.stdout
+        outfile = StringIO() if mode == 'ansi' else sys.stdout if mode == 'human' else super().render(mode)
         for i, dim_1 in enumerate(self.board):
             for j, dim_2 in enumerate(dim_1):
                 if dim_2 == SPACE_MINE:
@@ -163,22 +144,15 @@ class MinesweeperEnv(gym.Env):
                     outfile.write(' ')
             if i != self.board_size[0] - 1:
                 outfile.write('\n')
-        return outfile
+        if mode == 'ansi':
+            return outfile
 
     def seed(self, seed=None):
         """Sets the seed for this env's random number generator(s).
 
-        Note:
-            Some environments use multiple pseudorandom number generators.
-            We want to capture all such seeds used in order to ensure that
-            there aren't accidental correlations between multiple generators.
-
         Returns:
             list<bigint>: Returns the list of seeds used in this env's random
-              number generators. The first value in the list should be the
-              "main" seed, or the value which a reproducer should pass to
-              'seed'. Often, the main seed equals the provided 'seed', but
-              this won't be true if seed=None, for example.
+              number generators. In this case, the length is 1.
         """
 
         self._rng, seed = seeding.np_random(seed)
