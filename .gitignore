@@ -1,4 +1,4 @@
 /.idea/
-/Pipfile.lock
 __pycache__
 /test_results/
+/venv/

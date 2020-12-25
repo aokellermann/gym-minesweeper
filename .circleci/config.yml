@@ -4,10 +4,6 @@ jobs:
   build:
     docker:
       - image: alpine:3.12.3
-        environment:
-          LANG: en_us.UTF-8
-          PIPENV_VENV_IN_PROJECT: true
-          PIPENV_DEV: true
 
     steps:
       - checkout
@@ -17,15 +13,15 @@ jobs:
           command: |
             sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
             echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
-            apk add --no-cache bash \
-                               py3-pip \
-                               shellcheck shfmt \
-                               gcc gfortran python3-dev build-base wget freetype-dev libpng-dev openblas-dev # for numpy
-            pip install pipenv
+            apk add --no-cache bash py3-pip py3-virtualenv shellcheck shfmt
 
       - run:
           name: Set Up Virtualenv
-          command: pipenv install
+          command: |
+            python3 -m venv venv
+            echo "source venv/bin/activate" >> $BASH_ENV
+            source venv/bin/activate
+            pip3 install -e .[dev]
 
       - run:
           name: Format
