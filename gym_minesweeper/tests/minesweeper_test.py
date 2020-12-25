@@ -4,6 +4,10 @@ import numpy.testing as npt
 
 from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
 
+TEST_BOARD_SIZE = (4, 5)
+TEST_NUM_MINES = 3
+TEST_SEED = 42069
+
 
 def test_no_mines_init():
     """Asserts that initializing with no mines works properly"""
@@ -34,6 +38,14 @@ def test_no_mines_step():
     assert info == dict()
 
 
+def create_game():
+    """Creates a deterministic 4x5 game"""
+    size = TEST_BOARD_SIZE
+    ms_game = MinesweeperEnv(size, TEST_NUM_MINES)
+    ms_game.seed(TEST_SEED)
+    return ms_game
+
+
 def assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones):
     """Given a full list of game steps, plays through the game and asserts all states are correct."""
 
@@ -54,14 +66,11 @@ def assert_game(ms_game, actions, expected_boards, expected_rewards, expected_do
         assert reward == expected_rewards[i], err_msg(i)
         assert done == expected_dones[i], err_msg(i)
         assert info == dict(), err_msg(i)
+        return ms_game
 
 
-def test_win():
+def test_win(ms_game=create_game()):
     """Asserts that a winning playthrough works."""
-
-    size = (4, 5)
-    ms_game = MinesweeperEnv(size, 3)
-    ms_game.seed(42069)
 
     actions = [(0, 0), (3, 3), (0, 3), (1, 2), (0, 4), (1, 4)]
     expected_boards = [
@@ -79,12 +88,8 @@ def test_win():
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
 
 
-def test_lose():
+def test_lose(ms_game=create_game()):
     """Asserts that a losing playthrough works."""
-
-    size = (4, 5)
-    ms_game = MinesweeperEnv(size, 3)
-    ms_game.seed(42069)
 
     actions = [(0, 0), (3, 3), (0, 3), (1, 2), (0, 4), (0, 2)]
     expected_boards = [
@@ -100,3 +105,25 @@ def test_lose():
     expected_dones = [False] * (len(expected_boards) - 1) + [True]
 
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
+
+
+def test_reset_and_reseed():
+    """Tests resetting the game and re-seeding."""
+
+    size = TEST_BOARD_SIZE
+    ms_game = create_game()
+
+    test_win(ms_game)
+    ms_game.reset()
+    ms_game.seed(TEST_SEED)  # need to re-seed so it's deterministic
+
+    test_lose(ms_game)
+    ms_game.reset()
+
+    assert ms_game.get_status() is None
+    assert ms_game.hist == []
+    npt.assert_array_equal(ms_game.board_size, (4, 5))
+    assert ms_game.num_mines == TEST_NUM_MINES
+
+    expected_board = [[SPACE_UNKNOWN] * size[1]] * size[0]
+    npt.assert_array_equal(ms_game.board, expected_board)
