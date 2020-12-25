@@ -2,4 +2,4 @@
 __pycache__
 /test_results/
 /venv/
-*.egg-info
+*.egg*
