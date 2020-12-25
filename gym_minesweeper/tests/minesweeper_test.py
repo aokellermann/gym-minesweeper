@@ -138,10 +138,16 @@ def test_render():
     test_lose(ms_game)
 
     class WriteSideEffect:
+        """Mock class for writable classes."""
         out = ""
 
-        def write(self, s):
-            self.out += str(s)
+        def write(self, text):
+            """Appends text to internal buffer."""
+            self.out += str(text)
+
+        def get(self):
+            """Gets the internal buffer."""
+            return self.out
 
     expected_board = "0 1 X 2 1\n" \
                      "0 1 2 X 1\n" \
@@ -151,7 +157,7 @@ def test_render():
     human_se = WriteSideEffect()
     with patch("sys.stdout.write", side_effect=human_se.write):
         ms_game.render('human')
-        assert human_se.out == expected_board
+        assert human_se.get() == expected_board
 
     string_io = ms_game.render('ansi')
     string_io.seek(0)

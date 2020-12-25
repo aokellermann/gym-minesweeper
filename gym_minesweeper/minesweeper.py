@@ -25,7 +25,6 @@ REWARD_CLEAR = 5
 class MinesweeperEnv(gym.Env):
     """Minesweeper gym environment."""
 
-    # TODO: rgb_array render mode
     metadata = {"render.modes": ["ansi", "human"]}
 
     def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
@@ -146,6 +145,7 @@ class MinesweeperEnv(gym.Env):
                 outfile.write('\n')
         if mode == 'ansi':
             return outfile
+        return None
 
     def seed(self, seed=None):
         """Sets the seed for this env's random number generator(s).
