@@ -9,8 +9,8 @@ import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
-DEFAULT_BOARD_SIZE = (16, 30)
-DEFAULT_NUM_MINES = 99
+DEFAULT_BOARD_SIZE = (16, 16)
+DEFAULT_NUM_MINES = 40
 
 SPACE_MINE = -2
 SPACE_UNKNOWN = -1
