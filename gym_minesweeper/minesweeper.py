@@ -9,8 +9,8 @@ import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
-DEFAULT_BOARD_SIZE = (16, 30)
-DEFAULT_NUM_MINES = 99
+DEFAULT_BOARD_SIZE = (16, 16)
+DEFAULT_NUM_MINES = 40
 
 SPACE_MINE = -2
 SPACE_UNKNOWN = -1
@@ -45,6 +45,7 @@ class MinesweeperEnv(gym.Env):
 
         self.observation_space = spaces.Box(SPACE_MINE, SPACE_MAX + 1, board_size, np.int)
         self.action_space = spaces.Discrete(np.prod(board_size))
+        self.seed()
         self.reset()
 
     def step(self, action):
