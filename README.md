@@ -1,5 +1,7 @@
 # gym-minesweeper
 
+[![aokellermann](https://circleci.com/gh/aokellermann/gym-minesweeper.svg?style=svg)](https://app.circleci.com/pipelines/github/aokellermann/gym-minesweeper)
+
 A minesweeper environment for [OpenAI Gym](https://gym.openai.com/).
 
 ## Setup
