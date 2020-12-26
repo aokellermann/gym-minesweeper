@@ -1,11 +1,10 @@
 """Tests for minesweeper env implementation."""
 from unittest.mock import patch
 
-import numpy.testing as npt
 import numpy as np
-from PIL import Image
-
+import numpy.testing as npt
 import pytest
+from PIL import Image
 
 from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
 
@@ -171,3 +170,31 @@ def test_render():
     npt.assert_array_equal(img, expected_img)
 
     pytest.raises(NotImplementedError, ms_game.render, 'other')
+
+
+def test_get_possible_moves():
+    ms_game = create_game()
+    npt.assert_array_equal(
+        np.sort(ms_game.get_possible_moves(), axis=0),
+        np.sort(np.transpose([
+            np.tile(range(TEST_BOARD_SIZE[0]), TEST_BOARD_SIZE[1]),
+            np.repeat(range(TEST_BOARD_SIZE[1]), TEST_BOARD_SIZE[0])
+        ]),
+                axis=0))
+
+    ms_game.step((0, 0))
+    npt.assert_array_equal(
+        np.sort(ms_game.get_possible_moves(), axis=0),
+        np.sort([(0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (1, 4), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1), (3, 2), (3, 3),
+                 (3, 4)],
+                axis=0))
+
+    ms_game.reset()
+    ms_game.seed(TEST_SEED)
+    test_win(ms_game)
+    assert ms_game.get_possible_moves() is None
+
+    ms_game.reset()
+    ms_game.seed(TEST_SEED)
+    test_lose(ms_game)
+    assert ms_game.get_possible_moves() is None
