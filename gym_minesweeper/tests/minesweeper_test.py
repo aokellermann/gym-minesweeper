@@ -2,6 +2,9 @@
 from unittest.mock import patch
 
 import numpy.testing as npt
+import numpy as np
+from PIL import Image
+
 import pytest
 
 from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
@@ -163,5 +166,8 @@ def test_render():
     string_io.seek(0)
     assert string_io.read() == expected_board
 
-    pytest.raises(NotImplementedError, ms_game.render, 'rgb_array')
+    img = ms_game.render('rgb_array')
+    expected_img = np.array(Image.open("gym_minesweeper/tests/test.bmp"))[:, :, :3]
+    npt.assert_array_equal(img, expected_img)
+
     pytest.raises(NotImplementedError, ms_game.render, 'other')
