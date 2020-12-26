@@ -3,26 +3,31 @@ version: 2
 jobs:
   build:
     docker:
-      - image: alpine
-        environment:
-          LANG: en_us.UTF-8
-          PIPENV_VENV_IN_PROJECT: true
-          PIPENV_DEV: true
+      - image: archlinux:base-devel
 
     steps:
       - checkout
 
       - run:
           name: Install Required Tools
+
+          # 1. Python deps
+          # 2. python-pillow does not provide wheel, so must be built with these deps
+          # 3. Formatting/linting
           command: |
-            sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories
-            echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
-            apk add --no-cache bash py3-pip shellcheck shfmt
-            pip install pipenv
+            pacman -Sy --noconfirm \
+              python python-pip python-virtualenv \
+              lcms2 libtiff openjpeg2 libimagequant libxcb \
+              shellcheck shfmt
 
       - run:
           name: Set Up Virtualenv
-          command: pipenv install
+          command: |
+            python -m venv venv
+            echo "source venv/bin/activate" >> $BASH_ENV
+            source venv/bin/activate
+            pip install --upgrade pip wheel
+            pip install -e .[dev]
 
       - run:
           name: Format

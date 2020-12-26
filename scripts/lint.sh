@@ -2,5 +2,5 @@
 
 set -eo pipefail
 
-pipenv run lint
+pylint --rcfile=setup.cfg gym_minesweeper setup.py
 shellcheck scripts/hooks/* scripts/*.sh

@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-pipenv run test
+pytest --junitxml=test_results/gym_minesweeper/report.xml gym_minesweeper/tests
