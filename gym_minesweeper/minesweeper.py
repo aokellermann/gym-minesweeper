@@ -22,10 +22,9 @@ REWARD_CLEAR = 5
 
 
 def get_image_rbg_arrays():
-    directory = "images"
-    extension = ".bmp"
+    """Returns a list of (x, y, 3) np.arrays for all space images, indexed by space number."""
     filenames = list(range(SPACE_MAX)) + ["mine", "unknown"]
-    return [np.array(Image.open("{}/{}{}".format(directory, filename, extension)))[:, :, :3] for filename in filenames]
+    return [np.array(Image.open("images/{}.bmp".format(filename)))[:, :, :3] for filename in filenames]
 
 
 IMAGE_RBG_ARRAYS = get_image_rbg_arrays()
