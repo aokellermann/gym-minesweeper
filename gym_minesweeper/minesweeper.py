@@ -45,6 +45,7 @@ class MinesweeperEnv(gym.Env):
 
         self.observation_space = spaces.Box(SPACE_MINE, SPACE_MAX + 1, board_size, np.int)
         self.action_space = spaces.Discrete(np.prod(board_size))
+        self.seed()
         self.reset()
 
     def step(self, action):
