@@ -167,7 +167,7 @@ def test_render():
     assert string_io.read() == expected_board
 
     img = ms_game.render('rgb_array')
-    expected_img = np.array(Image.open("gym_minesweeper/tests/test.bmp"))[:, :, :3]
+    expected_img = np.array(Image.open("images/test/render.bmp"))[:, :, :3]
     npt.assert_array_equal(img, expected_img)
 
     pytest.raises(NotImplementedError, ms_game.render, 'other')
