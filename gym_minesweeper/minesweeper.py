@@ -140,7 +140,10 @@ class MinesweeperEnv(gym.Env):
             mode (str): the mode to render with
 
         Returns:
-            outfile (StringIO or None): StringIO stream if mode is ansi, otherwise None
+            out (StringIO/None/np.ndarray):
+                StringIO stream if mode is ansi
+                None if mode is human
+                numpy.ndarray with shape (x, y, 3) if mode is rgb_array
         """
 
         if mode == 'rgb_array':
