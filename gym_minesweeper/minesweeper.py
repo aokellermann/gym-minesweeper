@@ -3,6 +3,7 @@
 import sys
 from io import StringIO
 
+from PIL import Image
 import gym
 import numpy as np
 from gym import spaces
@@ -20,12 +21,21 @@ REWARD_LOSE = -100
 REWARD_CLEAR = 5
 
 
+def get_image_rbg_arrays():
+    """Returns a list of (x, y, 3) np.arrays for all space images, indexed by space number."""
+    filenames = list(range(SPACE_MAX)) + ["mine", "unknown"]
+    return [np.array(Image.open("images/{}.bmp".format(filename)))[:, :, :3] for filename in filenames]
+
+
+IMAGE_RBG_ARRAYS = get_image_rbg_arrays()
+
+
 # Based on https://github.com/genyrosk/gym-chess/blob/master/gym_chess/envs/chess.py
 # pylint: disable=R0902
 class MinesweeperEnv(gym.Env):
     """Minesweeper gym environment."""
 
-    metadata = {"render.modes": ["ansi", "human"]}
+    metadata = {"render.modes": ["ansi", "human", "rgb_array"]}
 
     def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
         assert np.prod(board_size) >= num_mines
@@ -119,6 +129,9 @@ class MinesweeperEnv(gym.Env):
 
         - human: render to the current display or terminal and
           return nothing. Usually for human consumption.
+        - rgb_array: Return an numpy.ndarray with shape (x, y, 3),
+          representing RGB values for an x-by-y pixel image, suitable
+          for turning into a video.
         - ansi: Return a StringIO.StringIO containing a
           terminal-style text representation. The text may include newlines
           and ANSI escape sequences (e.g. for colors).
@@ -127,8 +140,21 @@ class MinesweeperEnv(gym.Env):
             mode (str): the mode to render with
 
         Returns:
-            outfile (StringIO or None): StringIO stream if mode is ansi, otherwise None
+            out (StringIO/None/np.ndarray):
+                StringIO stream if mode is ansi
+                None if mode is human
+                numpy.ndarray with shape (x, y, 3) if mode is rgb_array
         """
+
+        if mode == 'rgb_array':
+            full = None
+            for dim_1 in self.board:
+                col = None
+                for dim_2 in dim_1:
+                    img = IMAGE_RBG_ARRAYS[dim_2]
+                    col = img if col is None else np.concatenate((col, img), axis=1)
+                full = col if full is None else np.concatenate((full, col), axis=0)
+            return full
 
         outfile = StringIO() if mode == 'ansi' else sys.stdout if mode == 'human' else super().render(mode)
         for i, dim_1 in enumerate(self.board):
