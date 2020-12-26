@@ -39,7 +39,7 @@ env = gym.make("Minesweeper-v0")
 print("board size: {}, num mines: {}".format(env.board_size, env.num_mines))
 
 # Clear a random space (the first clear will never explode a mine, and there will be no nearby bombs)
-move = (random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1))
+move = random.choice(env.get_possible_moves())
 board, reward, done, _ = env.step(move)
 
 # Get the value of a random space
