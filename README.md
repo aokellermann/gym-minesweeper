@@ -22,7 +22,7 @@ pip install -e .
 
 ```python3
 import gym
-import gym_minesweeper
+from gym_minesweeper import SPACE_UNKNOWN, SPACE_MINE
 import random
 
 from PIL import Image
@@ -33,8 +33,21 @@ env = gym.make("Minesweeper-v0")
 # Prints the board size and num mines
 print("board size: {}, num mines: {}".format(env.board_size, env.num_mines))
 
-# Clear a random space. Takes in coordinates.
-board, reward, done, _ = env.step((random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1)))
+# Clear a random space (the first clear will never explode a mine, and there will be no nearby bombs)
+move = (random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1))
+board, reward, done, _ = env.step(move)
+
+# Get the value of a random space
+space = board[random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1)]
+if space >= 0:
+    # if on interval [0, 8], indicates the number of nearby mines
+    pass
+elif space == SPACE_UNKNOWN:
+    # the space isn't cleared yet
+    pass
+elif space == SPACE_MINE:
+    # you will only be able to see mines after losing the game
+    pass
 
 # Prints human readable board in terminal
 env.render()
