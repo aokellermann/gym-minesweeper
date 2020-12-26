@@ -39,20 +39,17 @@ env = gym.make("Minesweeper-v0")
 print("board size: {}, num mines: {}".format(env.board_size, env.num_mines))
 
 # Clear a random space (the first clear will never explode a mine, and there will be no nearby bombs)
-move = (random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1))
+move = random.choice(env.get_possible_moves())
 board, reward, done, _ = env.step(move)
 
-# Get the value of a random space
-space = board[random.randint(0, env.board_size[0] - 1), random.randint(0, env.board_size[1] - 1)]
+# Get the value of the cleared space
+space = board[move]
 if space >= 0:
-    # if on interval [0, 8], indicates the number of nearby mines
-    pass
+    print("There are {} nearby mines.".format(space))
 elif space == SPACE_UNKNOWN:
-    # the space isn't cleared yet
-    pass
+    print("This space isn't cleared yet.")
 elif space == SPACE_MINE:
-    # you will only be able to see mines after losing the game
-    pass
+    print("You hit a mine!")
 
 # Prints human readable board in terminal
 env.render()

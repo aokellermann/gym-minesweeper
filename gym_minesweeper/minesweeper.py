@@ -3,9 +3,9 @@
 import sys
 from io import StringIO
 
-from PIL import Image
 import gym
 import numpy as np
+from PIL import Image
 from gym import spaces
 from gym.utils import seeding
 
@@ -230,3 +230,18 @@ class MinesweeperEnv(gym.Env):
         if np.count_nonzero(self.board == SPACE_MINE):
             return False
         return True if np.count_nonzero(self.board == SPACE_UNKNOWN) == self.num_mines else None
+
+    def get_possible_moves(self):
+        """Gets a collection of possible moves.
+
+        Returns:
+            moves (list): List of (x, y) pairs that are possible moves. If the game is over, returns None.
+        """
+
+        if self.get_status() is None:
+            all_coords = np.transpose([
+                np.tile(range(self.board_size[0]), self.board_size[1]),
+                np.repeat(range(self.board_size[1]), self.board_size[0])
+            ])
+            return [tuple(coord) for coord in all_coords if self._is_clearable_space(*tuple(coord))]
+        return None
