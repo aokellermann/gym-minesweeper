@@ -173,6 +173,8 @@ def test_render():
 
 
 def test_get_possible_moves():
+    """Asserts that get_possible_moves returns only unknown spaces, or None if the game is over"""
+
     ms_game = create_game()
     npt.assert_array_equal(
         np.sort(ms_game.get_possible_moves(), axis=0),
