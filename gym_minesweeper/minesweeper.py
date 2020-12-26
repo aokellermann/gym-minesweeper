@@ -35,7 +35,7 @@ IMAGE_RBG_ARRAYS = get_image_rbg_arrays()
 class MinesweeperEnv(gym.Env):
     """Minesweeper gym environment."""
 
-    metadata = {"render.modes": ["ansi", "human"]}
+    metadata = {"render.modes": ["ansi", "human", "rgb_array"]}
 
     def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
         assert np.prod(board_size) >= num_mines
