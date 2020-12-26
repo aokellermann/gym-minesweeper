@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-pytest --junitxml=test_results/gym_minesweeper/report.xml gym_minesweeper/tests
+coverage run --source gym_minesweeper -m pytest --junitxml=test_results/gym_minesweeper/report.xml gym_minesweeper/tests
