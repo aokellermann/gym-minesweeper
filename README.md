@@ -6,7 +6,7 @@ A minesweeper environment for [OpenAI Gym](https://gym.openai.com/).
 
 ## Setup
 
-You may have to install the following dependencies (due to Pillow not providing a wheel on Linux):
+You may have to install the following build dependencies (due to Pillow not providing a wheel on Linux):
 
 * lcms2
 * libtiff
@@ -14,13 +14,15 @@ You may have to install the following dependencies (due to Pillow not providing 
 * libimagequant
 * libxcb
 
-Then, to install the environment
+Then, install the environment:
 
 ```bash
 pip install -e .
 ```
 
 ## Play
+
+Example usage:
 
 ```python3
 import random
