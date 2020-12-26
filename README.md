@@ -21,11 +21,12 @@ pip install -e .
 ## Play
 
 ```python3
-import gym
-from gym_minesweeper import SPACE_UNKNOWN, SPACE_MINE
 import random
 
+import gym
 from PIL import Image
+
+from gym_minesweeper import SPACE_UNKNOWN, SPACE_MINE
 
 # Creates a new game
 env = gym.make("Minesweeper-v0")
