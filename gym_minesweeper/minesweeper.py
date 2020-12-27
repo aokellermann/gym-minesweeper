@@ -15,6 +15,7 @@ DEFAULT_NUM_MINES = 40
 DEFAULT_REWARD_WIN = 1000
 DEFAULT_REWARD_LOSE = -100
 DEFAULT_REWARD_CLEAR = 5
+DEFAULT_REWARD_FAIL_CLEAR = -1
 
 SPACE_MINE = -2
 SPACE_UNKNOWN = -1
@@ -40,7 +41,7 @@ class MinesweeperEnv(gym.Env):
     def __init__(self,
                  board_size=DEFAULT_BOARD_SIZE,
                  num_mines=DEFAULT_NUM_MINES,
-                 rewards=(DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR)):
+                 rewards=(DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR, DEFAULT_REWARD_FAIL_CLEAR)):
         assert np.prod(board_size) >= num_mines
         assert len(board_size) == 2
         self.board_size, self.num_mines, self.rewards = board_size, num_mines, rewards
@@ -69,7 +70,9 @@ class MinesweeperEnv(gym.Env):
         """
 
         target_x, target_y = tuple(action)
-        assert self._is_clearable_space(target_x, target_y), "Invalid action: {}".format(action)
+        assert self._is_valid_space(target_x, target_y), "Invalid action: {}".format(action)
+        if not self._is_clearable_space(target_x, target_y):
+            return self.board, self.rewards[3], False, dict()
 
         # If first step, populate board
         # We do this here so that the first move never triggers a mine to explode

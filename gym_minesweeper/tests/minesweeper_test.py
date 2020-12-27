@@ -6,7 +6,7 @@ import numpy.testing as npt
 import pytest
 from PIL import Image
 
-from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR
+from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR, DEFAULT_REWARD_FAIL_CLEAR
 
 TEST_BOARD_SIZE = (4, 5)
 TEST_NUM_MINES = 3
@@ -108,6 +108,17 @@ def test_lose(ms_game=create_game()):
     expected_dones = [False] * (len(expected_boards) - 1) + [True]
 
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
+
+
+def test_clear_cleared_space():
+    ms_game = create_game()
+    action = (0, 0)
+    board, reward, done, info = ms_game.step(action)
+    board_2, reward_2, done_2, info_2 = ms_game.step(action)
+    npt.assert_array_equal(board, board_2)
+    assert reward_2 == DEFAULT_REWARD_FAIL_CLEAR
+    assert done == done_2 and not done
+    assert info == info_2 and info == dict()
 
 
 def test_reset_and_reseed():
