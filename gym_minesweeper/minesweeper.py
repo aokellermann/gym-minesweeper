@@ -12,13 +12,13 @@ from gym.utils import seeding
 DEFAULT_BOARD_SIZE = (16, 16)
 DEFAULT_NUM_MINES = 40
 
+DEFAULT_REWARD_WIN = 1000
+DEFAULT_REWARD_LOSE = -100
+DEFAULT_REWARD_CLEAR = 5
+
 SPACE_MINE = -2
 SPACE_UNKNOWN = -1
 SPACE_MAX = 8
-
-REWARD_WIN = 1000
-REWARD_LOSE = -100
-REWARD_CLEAR = 5
 
 
 def get_image_rbg_arrays():
@@ -37,10 +37,13 @@ class MinesweeperEnv(gym.Env):
 
     metadata = {"render.modes": ["ansi", "human", "rgb_array"]}
 
-    def __init__(self, board_size=DEFAULT_BOARD_SIZE, num_mines=DEFAULT_NUM_MINES):
+    def __init__(self,
+                 board_size=DEFAULT_BOARD_SIZE,
+                 num_mines=DEFAULT_NUM_MINES,
+                 rewards=(DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR)):
         assert np.prod(board_size) >= num_mines
         assert len(board_size) == 2
-        self.board_size, self.num_mines = board_size, num_mines
+        self.board_size, self.num_mines, self.rewards = board_size, num_mines, rewards
         self.hist, self.board, self._board, self._rng = None, None, None, None
 
         self.observation_space = spaces.Box(SPACE_MINE, SPACE_MAX + 1, board_size, np.int)
@@ -96,13 +99,13 @@ class MinesweeperEnv(gym.Env):
         status = self.get_status()
 
         if status is None:
-            return self.board, 5, False, dict()
+            return self.board, self.rewards[2], False, dict()
         if status:
             # if won, no need to reveal mines
-            return self.board, 1000, True, dict()
+            return self.board, self.rewards[0], True, dict()
         # if lost, reveal mines
         self.board = self._board
-        return self.board, -100, True, dict()
+        return self.board, self.rewards[1], True, dict()
 
     def reset(self):
         """Resets the environment to an initial state and returns an initial

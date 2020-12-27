@@ -6,7 +6,7 @@ import numpy.testing as npt
 import pytest
 from PIL import Image
 
-from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, REWARD_WIN, REWARD_LOSE, REWARD_CLEAR
+from gym_minesweeper import MinesweeperEnv, SPACE_UNKNOWN, DEFAULT_REWARD_WIN, DEFAULT_REWARD_LOSE, DEFAULT_REWARD_CLEAR
 
 TEST_BOARD_SIZE = (4, 5)
 TEST_NUM_MINES = 3
@@ -37,7 +37,7 @@ def test_no_mines_step():
     npt.assert_array_equal(ms_game.hist, [action])
 
     npt.assert_array_equal(board, expected_board)
-    assert reward == REWARD_WIN
+    assert reward == DEFAULT_REWARD_WIN
     assert done
     assert info == dict()
 
@@ -85,7 +85,7 @@ def test_win(ms_game=create_game()):
         [[0, 1, -1, 2, 1], [0, 1, 2, -1, 1], [1, 1, 1, 1, 1], [-1, 1, 0, 0, 0]],
     ]
 
-    expected_rewards = [REWARD_CLEAR] * (len(expected_boards) - 1) + [REWARD_WIN]
+    expected_rewards = [DEFAULT_REWARD_CLEAR] * (len(expected_boards) - 1) + [DEFAULT_REWARD_WIN]
     expected_dones = [False] * (len(expected_boards) - 1) + [True]
 
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
@@ -104,7 +104,7 @@ def test_lose(ms_game=create_game()):
         [[0, 1, -2, 2, 1], [0, 1, 2, -2, 1], [1, 1, 1, 1, 1], [-2, 1, 0, 0, 0]],
     ]
 
-    expected_rewards = [REWARD_CLEAR] * (len(expected_boards) - 1) + [REWARD_LOSE]
+    expected_rewards = [DEFAULT_REWARD_CLEAR] * (len(expected_boards) - 1) + [DEFAULT_REWARD_LOSE]
     expected_dones = [False] * (len(expected_boards) - 1) + [True]
 
     assert_game(ms_game, actions, expected_boards, expected_rewards, expected_dones)
